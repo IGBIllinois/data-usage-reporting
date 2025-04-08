@@ -1,0 +1,85 @@
+import os
+import time
+from datetime import datetime
+
+def scan_user(directory, user_id, netid, center_name, skip_hidden, file_writer):
+    start_time = time.time()
+    print(f"Scanning user {user_id}: {netid}")
+
+    # Append center_name to netid if the user is dropboxes
+    if netid == 'dropboxes':
+        netid = f"{netid}_{center_name}"
+
+    total_files = 0
+    total_file_size = 0
+
+    # Get metadata for the user folder itself
+    user_stat = os.lstat(directory)
+    user_last_modified_date = datetime.fromtimestamp(user_stat.st_mtime).strftime('%Y-%m-%d')
+    user_access_date = datetime.fromtimestamp(user_stat.st_atime).strftime('%Y-%m-%d')
+    user_creation_date = datetime.fromtimestamp(user_stat.st_ctime).strftime('%Y-%m-%d')
+
+    for root, dirs, files in os.walk(directory):
+        if skip_hidden:
+            dirs[:] = [d for d in dirs if not d.startswith('.')]
+            files = [f for f in files if not f.startswith('.')]
+
+        for file in files:
+            file_path = os.path.join(root, file)
+            file_stat = os.lstat(file_path)
+            file_size = file_stat.st_size
+            last_modified_date = datetime.fromtimestamp(file_stat.st_mtime).strftime('%Y-%m-%d')
+            access_date = datetime.fromtimestamp(file_stat.st_atime).strftime('%Y-%m-%d')
+            creation_date = datetime.fromtimestamp(file_stat.st_ctime).strftime('%Y-%m-%d')
+            
+            # Write to the file_writer with the updated netid
+            file_writer.writerow([user_id, netid, file_path, file, file_size, last_modified_date, access_date, creation_date])
+            
+            total_files += 1
+            total_file_size += file_size
+
+    end_time = time.time()
+    scan_time = round(end_time - start_time)
+    user_data = [
+        user_id, netid, center_name, scan_time, skip_hidden, total_files, total_file_size,
+        user_last_modified_date, user_access_date, user_creation_date  # Add folder times here
+    ]
+    print(f"{netid} completed in {scan_time} s, total files: {total_files}; total size: {total_file_size / (1024 ** 3):.2f} GB")
+
+    return user_data
+
+def format_time(seconds):
+    if seconds < 3600:
+        return time.strftime("%M:%S", time.gmtime(seconds))
+    else:
+        return time.strftime("%H:%M:%S", time.gmtime(seconds))
+
+def scan_all_users(center_directory, user_id, skip_hidden, user_writer, file_writer):
+    start_time = time.time()
+    start_datetime = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    print(f"Scan started at: {start_datetime}, Directory: {center_directory} (Skip hidden files: {skip_hidden})")
+
+    center_name = os.path.basename(center_directory.rstrip(os.sep))  # Get the center directory name (e.g., 'a-m')
+
+    # Sort users alphabetically
+    users = sorted(os.listdir(center_directory))
+
+    for user in users:
+        if user.startswith('.') or user.startswith('class') or user == 'old_users':
+            continue
+
+        user_directory = os.path.join(center_directory, user)
+        if os.path.isdir(user_directory):
+            # Pass the user and center_name to scan_user
+            user_data = scan_user(user_directory, user_id, user, center_name, skip_hidden, file_writer)
+            user_writer.writerow(user_data)  # Write user data (including folder times) to the users table
+            user_id += 1
+
+    end_time = time.time()
+    end_datetime = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    total_time = round(end_time - start_time)
+    formatted_total_time = format_time(total_time)
+    print(f"Scan ended at: {end_datetime}")
+    print(f"Total time taken: {formatted_total_time}")
+
+    return user_id

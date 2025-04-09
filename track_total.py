@@ -9,13 +9,13 @@ base_dir = 'results/'
 folders = [f for f in os.listdir(base_dir) if os.path.isdir(os.path.join(base_dir, f))]
 
 # Print the modification time for each folder
-print("Folders and their modification times:")
+# print("Folders and their modification times:")
 folder_mod_times = []
 for folder in folders:
     folder_path = os.path.join(base_dir, folder)
     mod_time = os.path.getmtime(folder_path)
     folder_mod_times.append((folder, mod_time))
-    print(f"{folder}: {datetime.fromtimestamp(mod_time).strftime('%Y-%m-%d %H:%M:%S')}")
+    # print(f"{folder}: {datetime.fromtimestamp(mod_time).strftime('%Y-%m-%d %H:%M:%S')}")
 
 # Get the latest folder based on modification time
 latest_folder, latest_mod_time = max(folder_mod_times, key=lambda x: x[1])
@@ -50,6 +50,9 @@ group_summary['Group'] = group_summary['Group'].map(group_mapping)
 # Recalculate the total size for combined groups
 group_summary = group_summary.groupby('Group')['TotalSizeBytes'].sum().reset_index()
 
+# Convert TotalSizeBytes to terabytes (TB)
+group_summary['TotalSizeBytes'] = group_summary['TotalSizeBytes'] / (1024**4)
+
 # Add the folder's modification date and timestamp to the summary
 timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 group_summary['Date'] = folder_date
@@ -59,6 +62,15 @@ group_summary['Timestamp'] = timestamp
 total_size = group_summary['TotalSizeBytes'].sum()
 total_row = pd.DataFrame({'Group': ['Total'], 'TotalSizeBytes': [total_size], 'Date': [folder_date], 'Timestamp': [timestamp]})
 group_summary = pd.concat([group_summary, total_row], ignore_index=True)
+
+# Add an "Other" row to calculate the difference between 1.2PT and the total size
+one_point_two_pt = 1.2 * 1024  # 1.2 petabytes in terabytes
+other_size = one_point_two_pt - total_size
+other_row = pd.DataFrame({'Group': ['Other'], 'TotalSizeBytes': [other_size], 'Date': [folder_date], 'Timestamp': [timestamp]})
+group_summary = pd.concat([group_summary, other_row], ignore_index=True)
+
+# Rename the column from TotalSizeBytes to TotalSizeTB
+group_summary.rename(columns={'TotalSizeBytes': 'TotalSizeTB'}, inplace=True)
 
 # Check if the output file exists
 if os.path.exists(output_file):

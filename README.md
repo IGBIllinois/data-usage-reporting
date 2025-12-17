@@ -40,7 +40,7 @@ The system is designed to run periodically (e.g., monthly) on the `dmanage.igb.i
 ## Directory Structure
 
 ```
-cnrg-data-management/
+biocluster_dmanage/
 ├── bin/                          # Main workflow scripts (numbered execution order)
 │   ├── 1_run_scans.py           # Step 1: Scan directories and collect metadata
 │   ├── 2_summarize_scan.py      # Step 2: Process data into statistics
@@ -151,6 +151,7 @@ Queries MySQL database for billing information.
 
 **Usage:**
 ```bash
+export MYSQL_USER='your_username'
 export MYSQL_PASSWORD='your-password'
 python3 bin/3_mysql_run.py
 ```

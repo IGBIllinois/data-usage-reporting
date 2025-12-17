@@ -1,0 +1,4 @@
+# Python 3.8+
+pandas>=2.0.0
+matplotlib>=3.7.0
+mysql-connector-python>=8.0.0

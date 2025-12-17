@@ -1,0 +1,25 @@
+{
+    "connection": {
+        "host": "biodatabase.igb.illinois.edu",
+        "user": "YOUR_USERNAME_HERE",
+        "password": "YOUR_PASSWORD_HERE",
+        "database": "cluster_accounting3"
+    },
+    "queries": {
+        "supervisor_users": {
+            "sql": "SELECT s.user_id AS supervisor_id, GROUP_CONCAT( u.user_id ORDER BY u.user_id SEPARATOR ',' ) AS supervised_user_ids FROM users u JOIN users s ON u.user_supervisor = s.user_id WHERE u.user_enabled = 1 AND s.user_enabled = 1 GROUP BY s.user_id ORDER BY s.user_id;",
+            "output": "supervisor_users_list_all.csv",
+            "description": "Get ids for supervisor and users they supervised."
+        },
+        "current_user_project_bill": {
+            "sql": "SELECT u.user_id, u.user_name, u.user_firstname, u.user_lastname, p.project_id, p.project_name, d.data_dir_id, d.data_dir_path, b.data_bill_date, b.data_bill_avg_bytes, b.data_bill_total_cost, b.data_bill_billed_cost FROM users u JOIN projects p ON p.project_owner = u.user_id JOIN data_dir d ON d.data_dir_project_id = p.project_id JOIN data_bill b ON b.data_bill_data_dir_id = d.data_dir_id AND b.data_bill_date = (SELECT MAX(data_bill_date) FROM data_bill) WHERE p.project_enabled = 1 AND d.data_dir_enabled = 1 ORDER BY u.user_id, p.project_id;",
+            "output": "current_user_project_bill.csv",
+            "description": "Get latest bill info for each user, project, and data directory."
+                },
+        "recent_12_bill": {
+            "sql": "SELECT b.data_bill_date, b.data_bill_avg_bytes, d.data_dir_path FROM data_bill b JOIN data_dir d ON b.data_bill_data_dir_id = d.data_dir_id JOIN ( SELECT DISTINCT data_bill_date FROM data_bill ORDER BY data_bill_date DESC LIMIT 12 ) recent ON b.data_bill_date = recent.data_bill_date ORDER BY b.data_bill_date DESC;",
+            "output": "mysql_recent_12_bill.csv",
+            "description": "Get the last 12 months of billing info and data directory."
+                }
+    }
+}

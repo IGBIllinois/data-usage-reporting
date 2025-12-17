@@ -1,6 +1,14 @@
+#!/usr/bin/env python3
 import os
 import time
+import csv
 from datetime import datetime
+
+def format_time(seconds):
+    if seconds < 3600:
+        return time.strftime("%M:%S", time.gmtime(seconds))
+    else:
+        return time.strftime("%H:%M:%S", time.gmtime(seconds))
 
 def scan_user(directory, user_id, netid, center_name, skip_hidden, file_writer):
     start_time = time.time()
@@ -41,18 +49,13 @@ def scan_user(directory, user_id, netid, center_name, skip_hidden, file_writer):
     end_time = time.time()
     scan_time = round(end_time - start_time)
     user_data = [
-        user_id, netid, center_name, scan_time, skip_hidden, total_files, total_file_size,
+        user_id, netid, center_name, scan_time, total_files, total_file_size,
         user_last_modified_date, user_access_date, user_creation_date  # Add folder times here
     ]
     print(f"{netid} completed in {scan_time} s, total files: {total_files}; total size: {total_file_size / (1024 ** 3):.2f} GB")
 
     return user_data
 
-def format_time(seconds):
-    if seconds < 3600:
-        return time.strftime("%M:%S", time.gmtime(seconds))
-    else:
-        return time.strftime("%H:%M:%S", time.gmtime(seconds))
 
 def scan_all_users(center_directory, user_id, skip_hidden, user_writer, file_writer):
     start_time = time.time()
@@ -81,5 +84,32 @@ def scan_all_users(center_directory, user_id, skip_hidden, user_writer, file_wri
     formatted_total_time = format_time(total_time)
     print(f"Scan ended at: {end_datetime}")
     print(f"Total time taken: {formatted_total_time}")
-
     return user_id
+        
+        
+def scan_dirs_and_write_csv(output_folder, group_directories, skip_hidden, start_user_id):
+    user_header = ['ID', 'NetID', 'Group', 'ScanTime', 'TotalFiles', 'TotalSizeBytes', 'LastModified', 'AccessDate', 'CreationDate']
+    file_header = ['ID', 'NetID', 'Path', 'Name', 'SizeBytes', 'LastModified', 'AccessDate', 'CreationDate']
+    with open(os.path.join(output_folder, 'users.csv'), 'w', newline='', errors='ignore') as user_csv, \
+         open(os.path.join(output_folder, 'files.csv'), 'w', newline='', errors='ignore') as file_csv:
+        user_writer = csv.writer(user_csv)
+        file_writer = csv.writer(file_csv)
+        user_writer.writerow(user_header)
+        file_writer.writerow(file_header)
+        user_id = start_user_id
+        for directory in group_directories:
+            user_id = scan_all_users(directory, user_id, skip_hidden, user_writer, file_writer)
+    return user_id
+
+
+def run_scan(output_folder, directories, skip_hidden, start_id):
+    from scan_utils import format_time, scan_dirs_and_write_csv
+    import os, time
+
+    os.makedirs(output_folder, exist_ok=True)
+    overall_start_time = time.time()
+    scan_dirs_and_write_csv(output_folder, directories, skip_hidden, start_id)
+    overall_end_time = time.time()
+    overall_total_time = round(overall_end_time - overall_start_time)
+    formatted_overall_total_time = format_time(overall_total_time)
+    print(f"Overall total time taken: {formatted_overall_total_time}")

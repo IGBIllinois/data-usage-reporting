@@ -1,0 +1,21 @@
+{
+  "data_dir": "/data/scan_output",
+  "results_dir": "results",
+  "target_folder": "",
+  "plot_dir": "combined",
+  "summary_type": "yearly",
+  "skip_hidden": true,
+  "scan_types": ["labs", "groups", "users"],
+  "labs": {
+    "directories": ["/gpfs/labs/"],
+    "start_id": 1
+  },
+  "groups": {
+    "directories": ["/gpfs/groups/"],
+    "start_id": 101
+  },
+  "users": {
+    "directories": ["/gpfs/a-m/", "/gpfs/n-z/"],
+    "start_id": 201
+  }
+}

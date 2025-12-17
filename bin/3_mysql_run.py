@@ -26,6 +26,7 @@ def main():
 
 
     # Connect to MySQL
+    mysql_config['connection']['user'] = os.environ.get('MYSQL_USER')
     mysql_config['connection']['password'] = os.environ.get('MYSQL_PASSWORD')
     conn_details = mysql_config['connection']
     conn_details['auth_plugin'] = 'mysql_clear_password'

@@ -1,8 +1,8 @@
 {
     "connection": {
         "host": "biodatabase.igb.illinois.edu",
-        "user": "YOUR_USERNAME_HERE",
-        "password": "YOUR_PASSWORD_HERE",
+        "user": "",
+        "password": "",
         "database": "cluster_accounting3"
     },
     "queries": {

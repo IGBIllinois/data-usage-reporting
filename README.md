@@ -330,5 +330,5 @@ PDF files named `{netid}_YYYY-MM-DD.pdf` containing:
 
 ## License
 
-Internal use only. Contact CNRG for licensing information.
+This project is licensed under the GPLv3 License – see the LICENSE file for details.
 

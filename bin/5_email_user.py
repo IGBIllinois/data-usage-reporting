@@ -13,7 +13,8 @@ def main():
     from email_utils import send_email
     
     # Load email config inside main
-    with open('config/email_config.json') as f:
+    email_config_path = os.path.join(root_dir, "config", "email_config.json")
+    with open(email_config_path) as f:
         email_config = json.load(f)
 
     SMTP_SERVER = email_config['smtp_server']
@@ -32,12 +33,12 @@ def main():
 
     # Ensure supervisor supervises themselves
     supervisor_df['supervised_user_ids'] = supervisor_df.apply(
-        lambda row: ','.join(sorted(set(str(row['supervised_user_ids']).split(',') + [str(row['user_id'])]))), axis=1
+        lambda row: ','.join(sorted(set(str(row['supervised_user_ids']).split(',') + [str(row['supervisor_id'])]))), axis=1
     )
     # Build set of supervisor user_ids
-    supervisor_ids = set(supervisor_df['user_id'].astype(str))
+    supervisor_ids = set(supervisor_df['supervisor_id'].astype(str))
     # Build mapping from supervisor_id to supervised_user_ids (as set)
-    supervisor_map = {str(row['user_id']): set(str(row['supervised_user_ids']).split(',')) for _, row in supervisor_df.iterrows()}
+    supervisor_map = {str(row['supervisor_id']): set(str(row['supervised_user_ids']).split(',')) for _, row in supervisor_df.iterrows()}
 
     # Get current year and month
     now = datetime.now()

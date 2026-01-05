@@ -3,9 +3,20 @@ import pandas as pd
 import os
 import json
 import sys
+import argparse
 from datetime import datetime
 
 def main():
+    parser = argparse.ArgumentParser(description='Send email reports to users')
+    parser.add_argument('--dry-run', action='store_true', 
+                        help='Show what emails would be sent without actually sending them')
+    args = parser.parse_args()
+    
+    # Initialize summary counters
+    summary = {'users': 0, 'supervisors': 0, 'total_attachments': 0}
+    
+    if args.dry_run:
+        print("\n=== DRY RUN MODE - No emails will be sent ===\n")
     # root_dir = os.path.abspath(os.getcwd())
     root_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
     sys.path.append(root_dir + "/lib")
@@ -56,7 +67,6 @@ def main():
             user_email = row['user_name'] + '@igb.illinois.edu'
         subject = f"Biocluster Data Usage Report ({year_month})"
         user_name = row['user_name']
-        print(f"Sending email to {user_name}")
         # Collect all PDFs for this user
         user_attachments = []
         for _, user_row in group.iterrows():
@@ -82,26 +92,48 @@ def main():
                             attachments.append(pdf_path_supervised)
                         names.append(user_row.get('user_firstname', uid))
             supervisor_body = f"Dear {row['user_firstname']} {row['user_lastname']},\n\n{supervisor_message}"
-            send_email(
-                recipient=user_email,
-                subject=subject,
-                body=supervisor_body,
-                attachment_paths=attachments,
-                sender_email=SENDER_EMAIL,
-                smtp_server=SMTP_SERVER,
-                smtp_port=SMTP_PORT
-            )
+            summary['supervisors'] += 1
+            summary['total_attachments'] += len(attachments)
+            if not args.dry_run:
+                send_email(
+                    recipient=user_email,
+                    subject=subject,
+                    body=supervisor_body,
+                    attachment_paths=attachments,
+                    sender_email=SENDER_EMAIL,
+                    smtp_server=SMTP_SERVER,
+                    smtp_port=SMTP_PORT
+                )
         else:
             body = f"Dear {row['user_firstname']} {row['user_lastname']},\n\n{user_message}"
-            send_email(
-                recipient=user_email,
-                subject=subject,
-                body=body,
-                attachment_paths=user_attachments,
-                sender_email=SENDER_EMAIL,
-                smtp_server=SMTP_SERVER,
-                smtp_port=SMTP_PORT
-            )
+            summary['users'] += 1
+            summary['total_attachments'] += len(user_attachments)
+            if not args.dry_run:
+                send_email(
+                    recipient=user_email,
+                    subject=subject,
+                    body=body,
+                    attachment_paths=user_attachments,
+                    sender_email=SENDER_EMAIL,
+                    smtp_server=SMTP_SERVER,
+                    smtp_port=SMTP_PORT
+                )
+    
+    # Print summary
+    if args.dry_run:
+        print(f"\n=== DRY RUN SUMMARY ===")
+        print(f"Total emails that would be sent: {summary['users'] + summary['supervisors']}")
+        print(f"  - Regular users: {summary['users']}")
+        print(f"  - Supervisors: {summary['supervisors']}")
+        print(f"Total attachments: {summary['total_attachments']}")
+        print(f"\nNo emails were actually sent.\n")
+    else:
+        print(f"\n=== EMAIL SUMMARY ===")
+        print(f"Total emails sent: {summary['users'] + summary['supervisors']}")
+        print(f"  - Regular users: {summary['users']}")
+        print(f"  - Supervisors: {summary['supervisors']}")
+        print(f"Total attachments sent: {summary['total_attachments']}")
+        print(f"\nEmails sent successfully.\n")
 
 
 if __name__ == "__main__":

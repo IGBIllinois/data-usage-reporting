@@ -188,14 +188,18 @@ Sends email reports to users and supervisors.
 
 **Usage:**
 ```bash
-python3 bin/5_email_user.py
+python3 bin/5_email_user.py [--dry-run]
 ```
+
+**Options:**
+- `--dry-run`: Show what emails would be sent without actually sending them (recommended before first run)
 
 **Behavior:**
 - Regular users: Receive their own PDF report
 - Supervisors: Receive their own report + all supervised users' reports
 - Email addresses: Defaults to `{netid}@igb.illinois.edu` if not in database
 - Requires: `config/email_config.json` and supervisor mapping CSV
+- Dry run mode displays summary of recipients and attachment counts without sending
 
 ## Usage Examples
 
@@ -210,6 +214,11 @@ python3 bin/1_run_scans.py
 python3 bin/2_summarize_scan.py
 python3 bin/3_mysql_run.py
 python3 bin/4_plot_user.py
+
+# Preview emails before sending (recommended)
+python3 bin/5_email_user.py --dry-run
+
+# Send emails after verifying dry run output
 python3 bin/5_email_user.py
 ```
 

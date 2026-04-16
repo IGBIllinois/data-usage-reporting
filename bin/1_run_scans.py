@@ -8,9 +8,7 @@ import argparse
 
 root_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.append(root_dir + "/lib")
-from scan_utils import run_scan,format_time# Load scan profile
-with open(os.path.join(root_dir, "config", "scan_config.json")) as f:
-    profile = json.load(f)
+from scan_utils import run_scan,format_time
 
 def main():
     overall_start_time = time.time()
@@ -18,10 +16,30 @@ def main():
     parser = argparse.ArgumentParser(description="Run scans for users, labs, or groups.")
     parser.add_argument("--scan-type", nargs="+", choices=["all", "users", "labs", "groups"], default=["all"],
                         help="Type of scan to run: users, labs, groups, or all (default: all)")
+    parser.add_argument("--config-dir", type=str, default="config",
+                        help="Config folder path, relative to project root or absolute (default: config)")
     args = parser.parse_args()
+
+    # Load scan profile
+    if os.path.isabs(args.config_dir):
+        config_dir = args.config_dir
+    else:
+        config_dir = os.path.join(root_dir, args.config_dir)
+    config_path = os.path.join(config_dir, "scan_config.json")
+    with open(config_path) as f:
+        profile = json.load(f)
 
     data_dir = profile["data_dir"]
     skip_hidden = profile.get("skip_hidden", True)
+    skip_folder_names = profile.get("skip_folder_names", [])
+    skip_user_prefixes = profile.get("skip_user_prefixes", [".", "class"])
+    skip_user_names = profile.get("skip_user_names", ["old_users"])
+    if isinstance(skip_folder_names, str):
+        skip_folder_names = [skip_folder_names]
+    if isinstance(skip_user_prefixes, str):
+        skip_user_prefixes = [skip_user_prefixes]
+    if isinstance(skip_user_names, str):
+        skip_user_names = [skip_user_names]
     date_str = datetime.now().strftime('%Y%m%d')
     base_output_folder = os.path.join(data_dir, date_str)
     os.makedirs(base_output_folder, exist_ok=True)
@@ -32,6 +50,9 @@ def main():
         overall_start_dt = datetime.now()
         log_file.write(f"Scan started at {overall_start_dt.strftime('%Y-%m-%d %H:%M:%S')}\n")
         log_file.write(f"skip_hidden: {skip_hidden}\n")
+        log_file.write(f"skip_folder_names: {skip_folder_names}\n")
+        log_file.write(f"skip_user_prefixes: {skip_user_prefixes}\n")
+        log_file.write(f"skip_user_names: {skip_user_names}\n")
 
     scan_type_times = {}
 
@@ -44,6 +65,9 @@ def main():
                 os.path.join(base_output_folder, scan_type),
                 info["directories"],
                 skip_hidden,
+                skip_folder_names,
+                skip_user_prefixes,
+                skip_user_names,
                 info["start_id"]
             )
             scan_end_dt = datetime.now()

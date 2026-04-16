@@ -116,11 +116,12 @@ Scans GPFS directories and collects file metadata.
 
 **Usage:**
 ```bash
-python3 bin/1_run_scans.py [--scan-type {all,users,labs,groups} ...]
+python3 bin/1_run_scans.py [--scan-type {all,users,labs,groups} ...] [--config-dir CONFIG_DIR]
 ```
 
 **Options:**
 - `--scan-type`: Select which directories to scan (default: all)
+- `--config-dir`: Config folder path (default: `config`)
 
 **Outputs:**
 - `data/YYYYMMDD/labs/users.csv` - Lab directory summaries
@@ -137,8 +138,11 @@ Processes raw scan data into statistical summaries.
 
 **Usage:**
 ```bash
-python3 bin/2_summarize_scan.py
+python3 bin/2_summarize_scan.py [--config-dir CONFIG_DIR]
 ```
+
+**Options:**
+- `--config-dir`: Config folder path (default: `config`)
 
 **Outputs:**
 - `results/YYYYMMDD/combined/user_statistics.csv` - Per-user summary stats
@@ -153,8 +157,11 @@ Queries MySQL database for billing information.
 ```bash
 export MYSQL_USER='your_username'
 export MYSQL_PASSWORD='your-password'
-python3 bin/3_mysql_run.py
+python3 bin/3_mysql_run.py [--config-dir CONFIG_DIR]
 ```
+
+**Options:**
+- `--config-dir`: Config folder path (default: `config`)
 
 **Outputs:**
 - `results/YYYYMMDD/combined/current_user_project_bill.csv` - Current billing data
@@ -166,8 +173,11 @@ Generates PDF visualization reports for each user.
 
 **Usage:**
 ```bash
-python3 bin/4_plot_user.py
+python3 bin/4_plot_user.py [--config-dir CONFIG_DIR]
 ```
+
+**Options:**
+- `--config-dir`: Config folder path (default: `config`)
 
 **Outputs:**
 - `results/YYYYMMDD/combined/plots/{netid}_YYYY-MM-DD.pdf` - Individual PDF reports
@@ -188,11 +198,12 @@ Sends email reports to users and supervisors.
 
 **Usage:**
 ```bash
-python3 bin/5_email_user.py [--dry-run]
+python3 bin/5_email_user.py [--dry-run] [--config-dir CONFIG_DIR]
 ```
 
 **Options:**
 - `--dry-run`: Show what emails would be sent without actually sending them (recommended before first run)
+- `--config-dir`: Config folder path (default: `config`)
 
 **Behavior:**
 - Regular users: Receive their own PDF report

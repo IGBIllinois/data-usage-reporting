@@ -6,15 +6,24 @@ import matplotlib.ticker as ticker
 import os
 import sys
 import json 
+import argparse
 
 def main():
+    parser = argparse.ArgumentParser(description='Generate user plots from summarized scan data')
+    parser.add_argument('--config-dir', type=str, default='config',
+                        help='Config folder path, relative to project root or absolute (default: config)')
+    args = parser.parse_args()
+
     # root_dir = os.path.abspath(os.getcwd())
     root_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
     sys.path.append(root_dir + "/lib")
     from stat_utils import get_input_folder
     
-    
-    config_path = os.path.join(root_dir, "config", "scan_config.json")
+    if os.path.isabs(args.config_dir):
+        config_dir = args.config_dir
+    else:
+        config_dir = os.path.join(root_dir, args.config_dir)
+    config_path = os.path.join(config_dir, "scan_config.json")
     input_folder = get_input_folder(config_path)
     print(f"Input folder: {input_folder}")
 

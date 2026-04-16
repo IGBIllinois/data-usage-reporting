@@ -10,6 +10,8 @@ def main():
     parser = argparse.ArgumentParser(description='Send email reports to users')
     parser.add_argument('--dry-run', action='store_true', 
                         help='Show what emails would be sent without actually sending them')
+    parser.add_argument('--config-dir', type=str, default='config',
+                        help='Config folder path, relative to project root or absolute (default: config)')
     args = parser.parse_args()
     
     # Initialize summary counters
@@ -22,9 +24,14 @@ def main():
     sys.path.append(root_dir + "/lib")
     from stat_utils import get_input_folder
     from email_utils import send_email
+
+    if os.path.isabs(args.config_dir):
+        config_dir = args.config_dir
+    else:
+        config_dir = os.path.join(root_dir, args.config_dir)
     
     # Load email config inside main
-    email_config_path = os.path.join(root_dir, "config", "email_config.json")
+    email_config_path = os.path.join(config_dir, "email_config.json")
     with open(email_config_path) as f:
         email_config = json.load(f)
 
@@ -36,7 +43,7 @@ def main():
     map_file = email_config['plot_map']
 
 
-    scan_config = os.path.join(root_dir, "config", "scan_config.json")
+    scan_config = os.path.join(config_dir, "scan_config.json")
     input_folder = get_input_folder(scan_config)
     pdf_dir = os.path.join(input_folder, 'plots')
     map_df = pd.read_csv(os.path.join(input_folder, map_file))

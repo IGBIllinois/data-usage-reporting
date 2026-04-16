@@ -1,10 +1,24 @@
 {
+  "_comment": [
+    "data_dir is the scan output root.",
+    "results_dir is where summaries are written.",
+    "target_folder selects a specific dated results folder.",
+    "plot_dir is the subfolder used for plots and email attachments.",
+    "summary_type controls the summary output format.",
+    "skip_hidden controls whether hidden files are ignored.",
+    "skip_user_prefixes excludes top-level user folders by name prefix.",
+    "skip_user_names excludes top-level user folders by exact name.",
+    "scan_types lists which scan types to run, each with its own config section below."
+  ],
   "data_dir": "/data/scan_output",
   "results_dir": "results",
   "target_folder": "",
   "plot_dir": "combined",
   "summary_type": "yearly",
   "skip_hidden": true,
+  "skip_folder_names": [""],
+  "skip_user_prefixes": [".", "class"],
+  "skip_user_names": ["old_users"],
   "scan_types": ["labs", "groups", "users"],
   "labs": {
     "directories": ["/gpfs/labs/"],

@@ -18,15 +18,28 @@ from datetime import datetime
 import time
 import sys
 import json
+import argparse
 
 root_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.append(root_dir + "/lib")
 from stat_utils import get_latest_folder, summarize_and_write_stats, combine_stats
 
-with open(os.path.join(root_dir, "config", "scan_config.json")) as f:
-    profile = json.load(f)
-
 def main():
+    # Parse arguments
+    parser = argparse.ArgumentParser(description="Summarize scan results.")
+    parser.add_argument("--config-dir", type=str, default="config",
+                        help="Config folder path, relative to project root or absolute (default: config)")
+    args = parser.parse_args()
+
+    # Load scan profile
+    if os.path.isabs(args.config_dir):
+        config_dir = args.config_dir
+    else:
+        config_dir = os.path.join(root_dir, args.config_dir)
+    config_path = os.path.join(config_dir, "scan_config.json")
+    with open(config_path) as f:
+        profile = json.load(f)
+
     # Start the timer
     start_time = time.time()
 

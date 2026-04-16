@@ -2,3 +2,5 @@ bin/run_analysis.sh
 *.md
 !README.md
 .DS_Store
+config_*
+results*

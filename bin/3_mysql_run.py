@@ -5,19 +5,30 @@ import mysql.connector
 import csv
 import json
 import pandas as pd
+import argparse
 
 
 def main():
+    parser = argparse.ArgumentParser(description="Run MySQL queries and summarize billing output")
+    parser.add_argument("--config-dir", type=str, default="config",
+                        help="Config folder path, relative to project root or absolute (default: config)")
+    args = parser.parse_args()
+
     root_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
     sys.path.append(root_dir + "/lib")
     from stat_utils import get_latest_folder, summarize_mysql_bill
 
+    if os.path.isabs(args.config_dir):
+        config_dir = args.config_dir
+    else:
+        config_dir = os.path.join(root_dir, args.config_dir)
+
     # Load MySQL config
-    MYSQL_CONFIG_FILE = os.path.join(root_dir, 'config', 'mysql_config.json')
+    MYSQL_CONFIG_FILE = os.path.join(config_dir, 'mysql_config.json')
     with open(MYSQL_CONFIG_FILE, 'r') as f:
         mysql_config = json.load(f)
 
-    with open(os.path.join(root_dir, "config", "scan_config.json")) as f:
+    with open(os.path.join(config_dir, "scan_config.json")) as f:
         scan_config = json.load(f)
 
     results_dir = scan_config.get('results_dir', 'results')

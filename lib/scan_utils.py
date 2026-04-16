@@ -10,7 +10,7 @@ def format_time(seconds):
     else:
         return time.strftime("%H:%M:%S", time.gmtime(seconds))
 
-def scan_user(directory, user_id, netid, center_name, skip_hidden, file_writer):
+def scan_user(directory, user_id, netid, center_name, skip_hidden, skip_folder_names, file_writer):
     start_time = time.time()
     print(f"Scanning user {user_id}: {netid}")
 
@@ -27,9 +27,14 @@ def scan_user(directory, user_id, netid, center_name, skip_hidden, file_writer):
     user_access_date = datetime.fromtimestamp(user_stat.st_atime).strftime('%Y-%m-%d')
     user_creation_date = datetime.fromtimestamp(user_stat.st_ctime).strftime('%Y-%m-%d')
 
+    skip_folder_set = {name.lower() for name in skip_folder_names}
+
     for root, dirs, files in os.walk(directory):
+        dirs[:] = [
+            d for d in dirs
+            if (not skip_hidden or not d.startswith('.')) and d.lower() not in skip_folder_set
+        ]
         if skip_hidden:
-            dirs[:] = [d for d in dirs if not d.startswith('.')]
             files = [f for f in files if not f.startswith('.')]
 
         for file in files:
@@ -57,7 +62,7 @@ def scan_user(directory, user_id, netid, center_name, skip_hidden, file_writer):
     return user_data
 
 
-def scan_all_users(center_directory, user_id, skip_hidden, user_writer, file_writer):
+def scan_all_users(center_directory, user_id, skip_hidden, skip_folder_names, skip_user_prefixes, skip_user_names, user_writer, file_writer):
     start_time = time.time()
     start_datetime = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     print(f"Scan started at: {start_datetime}, Directory: {center_directory} (Skip hidden files: {skip_hidden})")
@@ -67,14 +72,20 @@ def scan_all_users(center_directory, user_id, skip_hidden, user_writer, file_wri
     # Sort users alphabetically
     users = sorted(os.listdir(center_directory))
 
+    skip_folder_set = {name.lower() for name in skip_folder_names}
+    skip_user_name_set = {name.lower() for name in skip_user_names}
+    skip_user_prefixes = [prefix for prefix in skip_user_prefixes if prefix]
+
     for user in users:
-        if user.startswith('.') or user.startswith('class') or user == 'old_users':
+        if user.lower() in skip_user_name_set or any(user.startswith(prefix) for prefix in skip_user_prefixes):
+            continue
+        if user.lower() in skip_folder_set:
             continue
 
         user_directory = os.path.join(center_directory, user)
         if os.path.isdir(user_directory):
             # Pass the user and center_name to scan_user
-            user_data = scan_user(user_directory, user_id, user, center_name, skip_hidden, file_writer)
+            user_data = scan_user(user_directory, user_id, user, center_name, skip_hidden, skip_folder_names, file_writer)
             user_writer.writerow(user_data)  # Write user data (including folder times) to the users table
             user_id += 1
 
@@ -87,7 +98,7 @@ def scan_all_users(center_directory, user_id, skip_hidden, user_writer, file_wri
     return user_id
         
         
-def scan_dirs_and_write_csv(output_folder, group_directories, skip_hidden, start_user_id):
+def scan_dirs_and_write_csv(output_folder, group_directories, skip_hidden, skip_folder_names, skip_user_prefixes, skip_user_names, start_user_id):
     user_header = ['ID', 'NetID', 'Group', 'ScanTime', 'TotalFiles', 'TotalSizeBytes', 'LastModified', 'AccessDate', 'CreationDate']
     file_header = ['ID', 'NetID', 'Path', 'Name', 'SizeBytes', 'LastModified', 'AccessDate', 'CreationDate']
     with open(os.path.join(output_folder, 'users.csv'), 'w', newline='', errors='ignore') as user_csv, \
@@ -98,17 +109,17 @@ def scan_dirs_and_write_csv(output_folder, group_directories, skip_hidden, start
         file_writer.writerow(file_header)
         user_id = start_user_id
         for directory in group_directories:
-            user_id = scan_all_users(directory, user_id, skip_hidden, user_writer, file_writer)
+            user_id = scan_all_users(directory, user_id, skip_hidden, skip_folder_names, skip_user_prefixes, skip_user_names, user_writer, file_writer)
     return user_id
 
 
-def run_scan(output_folder, directories, skip_hidden, start_id):
+def run_scan(output_folder, directories, skip_hidden, skip_folder_names, skip_user_prefixes, skip_user_names, start_id):
     from scan_utils import format_time, scan_dirs_and_write_csv
     import os, time
 
     os.makedirs(output_folder, exist_ok=True)
     overall_start_time = time.time()
-    scan_dirs_and_write_csv(output_folder, directories, skip_hidden, start_id)
+    scan_dirs_and_write_csv(output_folder, directories, skip_hidden, skip_folder_names, skip_user_prefixes, skip_user_names, start_id)
     overall_end_time = time.time()
     overall_total_time = round(overall_end_time - overall_start_time)
     formatted_overall_total_time = format_time(overall_total_time)

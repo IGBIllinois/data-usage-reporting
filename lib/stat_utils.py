@@ -25,12 +25,19 @@ def summarize_stats(subfolder_path, summary_type='yearly'):
         files_csv_path,
         usecols=['ID', 'NetID', 'LastModified', 'SizeBytes'],
         dtype={'ID': 'int32', 'NetID': 'object', 'SizeBytes': 'int64'},
-        parse_dates=['LastModified']
     )
+    # Force datetime conversion
+    files_df['LastModified'] = pd.to_datetime(
+        files_df['LastModified'],
+        errors='coerce'
+    )
+    files_df = files_df.dropna(subset=['LastModified'])
 
     # Calculate statistics
     user_last_modified = files_df.groupby(['ID', 'NetID'])['LastModified'].max().reset_index()
-    inactive_files = files_df[files_df['LastModified'] < pd.to_datetime('today') - pd.Timedelta(days=182)]
+    # Clean day-based cutoff
+    cutoff = pd.Timestamp.today().normalize() - pd.Timedelta(days=182)
+    inactive_files = files_df[files_df['LastModified'] < cutoff]
     inactive_file_count = inactive_files.groupby(['ID', 'NetID']).size().reset_index(name='InactiveFileCount')
     largest_file_size = files_df.groupby(['ID', 'NetID'])['SizeBytes'].max().reset_index().rename(columns={'SizeBytes': 'LargestFileSize'})
     small_files = files_df[files_df['SizeBytes'] < 1024]

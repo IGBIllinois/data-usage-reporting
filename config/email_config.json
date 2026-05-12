@@ -4,6 +4,6 @@
     "sender_email": "do-not-reply@igb.illinois.edu",
     "plot_map": "plot_map_all.csv",
     "user_supervisor": "supervisor_users_list_all.csv",
-    "user_message": "Please find your data usage report attached. If you have any questions, please feel free to contact us.\n\nBest regards,\n\nUniversity of Illinois Urbana-Champaign\nCarl R. Woese Institute for Genomic Biology\nComputer Network Resource Group",
-    "supervisor_message": "Please find data usage reports attached for your group. If you have any questions, please feel free to contact us.\n\nBest regards,\n\nUniversity of Illinois Urbana-Champaign\nCarl R. Woese Institute for Genomic Biology\nComputer Network Resource Group"
+    "user_message": "Please find your data usage report attached. If you have any questions, please feel free to contact us at data@igb.illinois.edu.\n\nBest regards,\n\nUniversity of Illinois Urbana-Champaign\nCarl R. Woese Institute for Genomic Biology\nComputer Network Resource Group",
+    "supervisor_message": "Please find data usage reports attached for your group. If you have any questions, please feel free to contact us at data@igb.illinois.edu.\n\nBest regards,\n\nUniversity of Illinois Urbana-Champaign\nCarl R. Woese Institute for Genomic Biology\nComputer Network Resource Group"
 }

@@ -1,6 +1,5 @@
 *.md
 !README.md
 .DS_Store
-config_*
 results*
 lib/__pycache__/

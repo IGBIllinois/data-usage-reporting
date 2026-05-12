@@ -336,7 +336,7 @@ PDF files named `{netid}_YYYY-MM-DD.pdf` containing:
 
 ## Notes
 
-- **Performance**: Full scans can take several hours depending on GPFS size
+- **Performance**: Full scans can take several hours depending on storage size and directory depth
 - **Disk Space**: Raw scan data can be large (several GB); consider cleanup policies
 - **Security**: Keep `mysql_config.json` and email configs secure (add to `.gitignore`)
 - **Scheduling**: Consider running via cron on the 1st of each month
@@ -345,7 +345,7 @@ PDF files named `{netid}_YYYY-MM-DD.pdf` containing:
 ## Troubleshooting
 
 **Scan fails with permission errors:**
-- Ensure the VM has read access to all GPFS directories
+- Ensure the VM has read access to all directories
 - Check `skip_hidden: true` in `scan_config.json`
 
 **MySQL connection fails:**
@@ -357,6 +357,7 @@ PDF files named `{netid}_YYYY-MM-DD.pdf` containing:
 - Verify `matplotlib` is installed
 - Check that `merged_user_bill.csv` exists and has data
 - Review `user_statistics.csv` and `current_user_project_bill.csv` for matching NetIDs
+- Check `not_in_bill.csv` and `not_in_users.csv` for not matched NetIDs
 
 **Emails not sending:**
 - Test SMTP connection manually

@@ -1,8 +1,9 @@
-# Biocluster Data Management
+# Data Usage Reporting
 
-[![Build Status](https://github.com/IGBIllinois/biocluster_dmanage/actions/workflows/main.yml/badge.svg)](https://github.com/IGBIllinois/biocluster_dmanage/actions/workflows/main.yml)
+[![Build Status](https://github.com/IGBIllinois/data-usage-reporting/actions/workflows/main.yml/badge.svg)](https://github.com/IGBIllinois/data-usage-reporting/actions/workflows/main.yml)
 
-A comprehensive Python-based system for scanning, analyzing, and reporting storage usage on the Biocluster. This automated workflow scans user directories, processes metadata, generates statistics, and sends personalized usage reports with visualizations to users and supervisors.
+
+A comprehensive Python-based system for scanning, analyzing, and reporting storage usage across supported storage environments. This automated workflow scans user directories, processes metadata, generates statistics, and sends personalized usage reports with visualizations to users and supervisors.
 
 ## Table of Contents
 
@@ -17,20 +18,21 @@ A comprehensive Python-based system for scanning, analyzing, and reporting stora
 
 ## Overview
 
-This repository contains an automated pipeline for managing Biocluster storage data:
+This repository contains an automated pipeline for managing storage-usage data:
 
-1. **Scan** - Collect file metadata from GPFS directories (users, labs, groups)
+1. **Scan** - Collect file metadata from configured directories (users, labs, groups)
 2. **Summarize** - Process raw data into statistical summaries
 3. **Database** - Query MySQL for billing information
 4. **Visualize** - Generate PDF reports with usage charts
 5. **Notify** - Email personalized reports to users and supervisors
 
-The system is designed to run periodically (e.g., monthly) on the `dmanage.igb.illinois.edu` VM.
+The system is designed to run periodically (e.g., monthly) on a VM or server configured for the target environment.
 
 ## Features
 
-- **Multi-target scanning**: Scans user directories (a-z), lab directories, and group directories
+- **Multi-target scanning**: Scans user directories, lab directories, and group directories
 - **Configurable workflow**: JSON-based configuration for directories, scan types, and email settings
+- **Config folder overrides**: All Python scripts accept `--config-dir`; the default is `config`
 - **Intelligent statistics**: Tracks total storage, inactive files (>6 months), small files (<1KB), and yearly trends
 - **Database integration**: Fetches billing data from MySQL and merges with usage statistics
 - **Automated reporting**: Generates professional PDF visualizations with usage tables and charts
@@ -40,13 +42,16 @@ The system is designed to run periodically (e.g., monthly) on the `dmanage.igb.i
 ## Directory Structure
 
 ```
-biocluster_dmanage/
+data-usage-reporting/
 ├── bin/                          # Main workflow scripts (numbered execution order)
 │   ├── 1_run_scans.py           # Step 1: Scan directories and collect metadata
 │   ├── 2_summarize_scan.py      # Step 2: Process data into statistics
 │   ├── 3_mysql_run.py           # Step 3: Query billing database
 │   ├── 4_plot_user.py           # Step 4: Generate PDF reports
 │   └── 5_email_user.py          # Step 5: Send email notifications
+│   ├── run_analysis.sh          # Default wrapper for the standard config folder
+│   ├── core_server_scan.sh      # Wrapper for core-server scan config files
+│   └── core_server_analysis.sh  # Wrapper for core-server analysis config files
 ├── lib/                          # Reusable utility modules
 │   ├── scan_utils.py            # Scanning and file processing functions
 │   ├── stat_utils.py            # Statistical analysis functions
@@ -55,6 +60,7 @@ biocluster_dmanage/
 │   ├── scan_config.json         # Scan directories and processing settings
 │   ├── mysql_config.json        # Database connection and queries
 │   └── email_config.json        # SMTP and email template settings
+├── config_core-server/           # Alternate configuration for core-server runs
 ├── data/                         # Raw scan outputs (YYYYMMDD/)
 ├── results/                      # Processed statistics and reports (YYYYMMDD/)
 └── README.md                     # This file
@@ -68,7 +74,7 @@ biocluster_dmanage/
   pip install pandas matplotlib mysql-connector-python
   ```
 - **Access requirements**:
-  - Read access to GPFS directories
+   - Read access to the target storage directories
   - MySQL database credentials
   - SMTP server access for sending emails
 
@@ -83,7 +89,7 @@ The complete workflow runs 5 numbered scripts in sequence:
 ### Step-by-Step Process
 
 1. **Scan** (`1_run_scans.py`):
-   - Recursively scans configured GPFS directories
+   - Recursively scans configured storage directories
    - Collects file metadata (size, timestamps, paths)
    - Outputs: `data/YYYYMMDD/{labs,groups,users}/{users.csv, files.csv}`
    - Supports selective scanning: `--scan-type labs groups`
@@ -108,11 +114,20 @@ The complete workflow runs 5 numbered scripts in sequence:
    - Sends consolidated reports to supervisors (includes supervised users' PDFs)
    - Uses SMTP with attachment support
 
+### Wrapper Scripts
+
+The default wrapper is [bin/run_analysis.sh](bin/run_analysis.sh). It uses the standard `config` folder, loads environment variables from `~/.myenv`, and runs the summarize, MySQL, and plotting steps.
+
+The other wrapper scripts are for the core-server configuration files:
+
+- [bin/core_server_scan.sh](bin/core_server_scan.sh) runs the scan step with `config_core-server`.
+- [bin/core_server_analysis.sh](bin/core_server_analysis.sh) runs the summarize step with `config_core-server`.
+
 ## Scripts Documentation
 
 ### `bin/1_run_scans.py`
 
-Scans GPFS directories and collects file metadata.
+Scans configured directories and collects file metadata.
 
 **Usage:**
 ```bash
@@ -121,7 +136,7 @@ python3 bin/1_run_scans.py [--scan-type {all,users,labs,groups} ...] [--config-d
 
 **Options:**
 - `--scan-type`: Select which directories to scan (default: all)
-- `--config-dir`: Config folder path (default: `config`)
+- `--config-dir`: Config folder path, relative to the project root or absolute (default: `config`)
 
 **Outputs:**
 - `data/YYYYMMDD/labs/users.csv` - Lab directory summaries
@@ -142,7 +157,7 @@ python3 bin/2_summarize_scan.py [--config-dir CONFIG_DIR]
 ```
 
 **Options:**
-- `--config-dir`: Config folder path (default: `config`)
+- `--config-dir`: Config folder path, relative to the project root or absolute (default: `config`)
 
 **Outputs:**
 - `results/YYYYMMDD/combined/user_statistics.csv` - Per-user summary stats
@@ -161,7 +176,7 @@ python3 bin/3_mysql_run.py [--config-dir CONFIG_DIR]
 ```
 
 **Options:**
-- `--config-dir`: Config folder path (default: `config`)
+- `--config-dir`: Config folder path, relative to the project root or absolute (default: `config`)
 
 **Outputs:**
 - `results/YYYYMMDD/combined/current_user_project_bill.csv` - Current billing data
@@ -177,7 +192,7 @@ python3 bin/4_plot_user.py [--config-dir CONFIG_DIR]
 ```
 
 **Options:**
-- `--config-dir`: Config folder path (default: `config`)
+- `--config-dir`: Config folder path, relative to the project root or absolute (default: `config`)
 
 **Outputs:**
 - `results/YYYYMMDD/combined/plots/{netid}_YYYY-MM-DD.pdf` - Individual PDF reports
@@ -203,7 +218,7 @@ python3 bin/5_email_user.py [--dry-run] [--config-dir CONFIG_DIR]
 
 **Options:**
 - `--dry-run`: Show what emails would be sent without actually sending them (recommended before first run)
-- `--config-dir`: Config folder path (default: `config`)
+- `--config-dir`: Config folder path, relative to the project root or absolute (default: `config`)
 
 **Behavior:**
 - Regular users: Receive their own PDF report

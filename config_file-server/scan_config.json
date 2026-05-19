@@ -1,0 +1,36 @@
+{
+  "_comment": [
+    "data_dir is the scan output root.",
+    "results_dir is where summaries are written.",
+    "target_folder selects a specific dated results folder.",
+    "plot_dir is the subfolder used for plots and email attachments.",
+    "summary_type controls the summary output format.",
+    "skip_hidden controls whether hidden files are ignored.",
+    "skip_folder_names excludes folders by name anywhere in traversal.",
+    "skip_user_prefixes excludes top-level user folders by name prefix.",
+    "skip_user_names excludes top-level user folders by exact name.",
+    "scan_types lists which scan types to run, each with its own config section below."
+  ],
+  "data_dir": "/data/file-server_scan",
+  "results_dir": "results_file-server",
+  "target_folder": "",
+  "plot_dir": "",
+  "summary_type": "yearly",
+  "skip_hidden": true,
+  "skip_folder_names": ["SNAPSHOTS"],
+  "skip_user_prefixes": [".", "class"],
+  "skip_user_names": [""],
+  "scan_types": ["groups", "themes", "users"],
+  "groups": {
+    "directories": ["/file-server/groups/"],
+    "start_id": 1
+  },
+  "themes": {
+    "directories": ["/file-server/themes/"],
+    "start_id": 101
+  },
+  "users": {
+    "directories": ["/file-server/home/a-m/", "/file-server/home/n-z/"],
+    "start_id": 201
+  }
+}

@@ -2,6 +2,21 @@ import json
 import os
 import pandas as pd
 
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+
+def resolve_path(path):
+
+    """
+    Resolve a path from the config.
+    - Expands '~'
+    - Leaves absolute paths unchanged
+    - Resolves relative paths relative to the project root
+    """
+    path = os.path.expanduser(path)
+    if not os.path.isabs(path):
+        path = os.path.join(PROJECT_ROOT, path)
+    return os.path.abspath(path)
 
 def get_latest_folder(base_dir):
     """
@@ -215,7 +230,7 @@ def summarize_mysql_bill(csv_path, output_summary_path=None):
 def get_input_folder(config_file):
     with open(config_file) as f:
         profile = json.load(f)
-    results_dir = profile.get('results_dir', 'results')
+    results_dir = resolve_path(profile.get('results_dir', 'results'))
     target_folder = profile.get('target_folder', '').strip()
     plot_dir = profile.get('plot_dir', 'combined')
     if target_folder:

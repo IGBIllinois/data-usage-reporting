@@ -22,7 +22,7 @@ import argparse
 
 root_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.append(root_dir + "/lib")
-from stat_utils import get_latest_folder, summarize_and_write_stats, combine_stats
+from stat_utils import get_latest_folder, summarize_and_write_stats, combine_stats, resolve_path
 
 def main():
     # Parse arguments
@@ -57,7 +57,7 @@ def main():
 
     # Define the input and output folders
     input_folder = os.path.join(data_dir, folder_to_use)
-    results_dir = profile.get('results_dir', 'results')
+    results_dir = resolve_path(profile.get('results_dir', 'results'))
     output_folder = os.path.join(results_dir, folder_to_use)
     os.makedirs(output_folder, exist_ok=True)
 
